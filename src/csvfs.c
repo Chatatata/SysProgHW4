@@ -48,17 +48,23 @@ static int csvfs_getattr(const char *path, struct stat *stbuf) {
         stbuf->st_mode = S_IFDIR | 0755;
         stbuf->st_nlink = 2;
         stbuf->st_size = 8;
+
+        ret_code = 0;
     } else if (ret_code == 1) {
         if (strcmp(pathbuf[0], "CODES") == 0) {
             //  We're querying for codes
             stbuf->st_mode = S_IFDIR | 0755;
             stbuf->st_nlink = 1;
             stbuf->st_size = 8;
+
+            ret_code = 0;
         } else if (strcmp(pathbuf[0], "NAMES") == 0) {
             //  We're querying for names
             stbuf->st_mode = S_IFDIR | 0755;
             stbuf->st_nlink = 1;
             stbuf->st_size = 8;
+
+            ret_code = 0;
         } else {
             ret_code = -ENOENT;
 
@@ -72,6 +78,8 @@ static int csvfs_getattr(const char *path, struct stat *stbuf) {
                 stbuf->st_mode = S_IFDIR | 0755;
                 stbuf->st_nlink = 3;
                 stbuf->st_size = BUFSIZ;
+
+                ret_code = 0;
             } else {
                 ret_code = -ENOENT;
 
@@ -99,6 +107,8 @@ static int csvfs_getattr(const char *path, struct stat *stbuf) {
             stbuf->st_mode = S_IFDIR | 0755;
             stbuf->st_nlink = 3;
             stbuf->st_size = 8;
+
+            ret_code = 0;
         } else {
             ret_code == -ENOENT;
 
@@ -110,6 +120,8 @@ static int csvfs_getattr(const char *path, struct stat *stbuf) {
                 stbuf->st_mode = S_IFREG | 0755;
                 stbuf->st_nlink = 4;
                 stbuf->st_size = BUFSIZ;
+
+                ret_code = 0;
             } else {
                 ret_code = -ENOENT;
 
@@ -148,6 +160,8 @@ static int csvfs_getattr(const char *path, struct stat *stbuf) {
             stbuf->st_mode = S_IFDIR | 0755;
             stbuf->st_nlink = 4;
             stbuf->st_size = BUFSIZ;
+
+            ret_code = 0;
         } else {
             ret_code = -ENOENT;
 
@@ -210,6 +224,8 @@ static int csvfs_getattr(const char *path, struct stat *stbuf) {
         stbuf->st_mode = S_IFREG | 0755;
         stbuf->st_nlink = 5;
         stbuf->st_size = BUFSIZ;
+
+        ret_code = 0;
     } else {
         ret_code = -ENOENT;
 
@@ -219,7 +235,7 @@ bailout:
     free(pathcpy);
     free(pathbuf);
 
-    return ret_code > 0 ? 0 : (-ret_code);
+    return ret_code;
 }
 
 static int csvfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi) {
@@ -837,12 +853,292 @@ bailout:
     return ret_code;
 }
 
+static int32_t csvfs_rename(const char* from, const char* to) {
+    int32_t ret_code = 0L;
+    int32_t path_nr = 0L;
+    size_t buf_len = 0L;
+    int32_t grep_code = 0L;
+    int32_t total_count = 0L;
+    int32_t zip_code = 0L;
+    int32_t to_zip_code = 0L;
+    int32_t i = 0L, b = 0L;
+    char **file_res = malloc(sizeof(char *) * 40000);
+    char **grep_res = malloc(sizeof(char *) * BUFSIZ);
+    char **grep_res_2nd = malloc(sizeof(char *) * BUFSIZ);
+    char **grep_res_3rd = malloc(sizeof(char *) * BUFSIZ);
+    char *result_buf = malloc(sizeof(char) * BUFSIZ);
+    char *pathcpy = malloc(sizeof(char) * BUFSIZ);
+    char *to_pathcpy = malloc(sizeof(char) * BUFSIZ);
+    char **pathbuf = malloc(sizeof(char *) * BUFSIZ);
+    char **to_pathbuf = malloc(sizeof(char *) * BUFSIZ);
+    char *stream_line = malloc(sizeof(char *) * BUFSIZ);
+    char *stream_line_raw = malloc(sizeof(char *) * BUFSIZ);
+    char *c_name = malloc(sizeof(char) * BUFSIZ);
+    char *d_name = malloc(sizeof(char) * BUFSIZ);
+    char *n_name = malloc(sizeof(char) * BUFSIZ);
+    char *lat = malloc(sizeof(char) * BUFSIZ);
+    char *lon = malloc(sizeof(char) * BUFSIZ);
+
+    //  Copy the from path first
+    debug_print("rename requested for path: %s\n", from);
+
+    strcpy(pathcpy, from);
+
+    debug_print("path copied as %s\n", pathcpy);
+    
+    ret_code = parse_path_str(pathcpy, pathbuf);
+
+    debug_print("path parse completed: %d params\n", ret_code);
+
+    //  Copy the to path second
+    debug_print("rename requested for to_path: %s\n", to);
+
+    strcpy(to_pathcpy, to);
+
+    debug_print("path copied as %s\n", to_pathcpy);
+
+    path_nr = parse_path_str(to_pathcpy, to_pathbuf);
+
+    debug_print("path parse completed: %d params\n", path_nr);
+
+    if (path_nr != ret_code) {
+        debug_print("csvfs only supports in-path renaming\n", NULL);
+        ret_code = -EINVAL;
+
+        goto bailout;
+    }
+
+    if (ret_code == 3 && strcmp(pathbuf[0], "CODES") == 0) {
+        if (sscanf(pathbuf[1], "%d", &zip_code) != 1 || zip_code <= 0 || zip_code > 81) {
+            ret_code = -ENOENT;
+
+            goto bailout;
+        }
+
+        if (strcmp(pathbuf[1], to_pathbuf[1]) != 0) {
+            debug_print("csvfs only supports in-path renaming\n", NULL);
+            ret_code = -EINVAL;
+
+            goto bailout;
+        }
+
+        grep_code = fgrep_city_by_code("file.csv", zip_code, grep_res);
+
+        if (grep_code < 0) {
+            ret_code = grep_code;
+
+            goto bailout;
+        } else if (grep_code == 0) {
+            goto err_noent;
+        }
+
+        if (strlen(pathbuf[2]) > 5) {
+            pathbuf[2][strlen(pathbuf[2]) - 4] = '\0';
+        } else {
+            goto err_noent;
+        }
+
+        if (sscanf(pathbuf[2], "%d", &zip_code) != 1) {
+            goto err_noent;
+        }
+
+        if (sscanf(to_pathbuf[2], "%d", &to_zip_code) != 1) {
+            debug_print("csvfs only supports in-path renaming\n", NULL);
+            ret_code = -EINVAL;
+
+            goto bailout;
+        }
+
+        grep_code = grep_district_by_code((const char **)grep_res, grep_code, zip_code, grep_res_2nd);
+
+        if (grep_code < 0) {
+            ret_code = grep_code;
+
+            goto bailout;
+        } else if (grep_code == 0) {
+            goto err_noent;
+        }
+
+        goto persist_for_all;
+    } else if (ret_code == 4 && strcmp(pathbuf[0], "NAMES") == 0) {
+        if (strcmp(pathbuf[1], to_pathbuf[1]) != 0 || strcmp(pathbuf[2], to_pathbuf[2]) != 0) {
+            debug_print("csvfs only supports in-path renaming\n", NULL);
+
+            ret_code = -EINVAL;
+
+            goto bailout;
+        }
+
+        if (strlen(to_pathbuf[3]) > 4) {
+            to_pathbuf[3][strlen(to_pathbuf[3]) - 4] = '\0';
+        }
+
+        grep_code = fgrep_city_by_name("file.csv", pathbuf[1], grep_res);
+
+        debug_print("fgrep with city: %s:%d\n", pathbuf[1], grep_code);
+
+        if (grep_code < 0) {
+            ret_code = grep_code;
+
+            goto bailout;
+        } else if (grep_code == 0) {
+            goto err_noent;
+        }
+
+        grep_code = grep_district_by_name((const char **)grep_res, grep_code, pathbuf[2], grep_res_2nd);
+
+        debug_print("grep with dist: %s:%d\n", pathbuf[2], grep_code);
+
+        if (grep_code < 0) {
+            ret_code = grep_code;
+
+            goto bailout;
+        } else if (grep_code == 0) {
+            goto err_noent;
+        }
+
+        pathbuf[3][strlen(pathbuf[3]) - 4] = '\0';
+
+        grep_code = grep_neighbor_by_name((const char **)grep_res_2nd, grep_code, pathbuf[3], grep_res_3rd);
+
+        debug_print("grep with neigh: %s:%d\n", pathbuf[3], grep_code);
+
+        if (grep_code < 0) {
+            ret_code = grep_code;
+
+            goto bailout;
+        } else if (grep_code == 0) {
+            goto err_noent;
+        }
+
+        strcpy(stream_line_raw, grep_res_3rd[0]);
+    } else {
+err_noent:
+        ret_code = -ENOENT;
+        
+        goto bailout;
+    }
+
+persist_for_one:
+    total_count = read_file("file.csv", file_res);
+
+    if (total_count < 0) {
+        debug_print("file could not be read, EIO\n", NULL);
+
+        ret_code = -EIO;
+
+        goto bailout;
+    } else if (total_count == 0) {
+        debug_print("file read but nothing found, EIO\n", NULL);
+
+        ret_code = -EIO;
+
+        goto bailout;
+    }
+
+    for (i = 0; i < total_count; ++i) {
+        if (strcmp(file_res[i], stream_line_raw) == 0) {
+            debug_print("found on update, inserting new string\n", NULL);
+            
+            if (sscanf(file_res[i], "%u\t%s\t%s\t%s\t%s\t%s\t", &zip_code, n_name, c_name, d_name, lat, lon) != 6) {
+                debug_print("fatal error occurred when reading formatted string\n", NULL);
+                ret_code = -EIO;
+
+                goto bailout;
+            }
+
+            debug_print("rename before: %s\n", file_res[i]);
+            sprintf(file_res[i], "%5u\t%s\t%s\t%s\t%s\t%s\t\n", zip_code, to_pathbuf[3], c_name, d_name, lat, lon);
+            debug_print("rename after: %s\n", file_res[i]);
+
+            break;
+        }
+    }
+
+    ret_code = write_file("file.csv", file_res, total_count);
+
+    if (ret_code != total_count) {
+        debug_print("unexpected write count on write, expected %d found %d\n", total_count, ret_code);
+
+        ret_code = -EIO;
+
+        goto bailout;
+    }
+
+    debug_print("written %d lines to file successfully\n", ret_code);
+
+    ret_code = 0;
+
+    goto bailout;
+
+persist_for_all:
+    total_count = read_file("file.csv", file_res);
+
+    if (total_count < 0) {
+        debug_print("file could not be read, EIO\n", NULL);
+
+        ret_code = -EIO;
+
+        goto bailout;
+    } else if (total_count == 0) {
+        debug_print("file read but nothing found, EIO\n", NULL);
+
+        ret_code = -EIO;
+
+        goto bailout;
+    }
+
+    for (i = 0; i < total_count; ++i) {
+        for (b = 0; b < grep_code; ++b) {
+            if (strcmp(file_res[i], grep_res_2nd[b]) == 0) {
+                debug_print("found on delete, inserting x\n", NULL);
+
+                file_res[i][0] = 'x';
+                goto bump;
+            }
+        }
+bump:
+        /* null */;
+    }
+
+    ret_code = write_file("file.csv", file_res, total_count);
+
+    if (ret_code != total_count) {
+        debug_print("unexpected write count on write, expected %d found %d\n", total_count, ret_code);
+
+        ret_code = -EIO;
+
+        goto bailout;
+    }
+
+    debug_print("written %d lines to file successfully\n", ret_code);
+
+    ret_code = 0;
+
+    goto bailout;
+
+bailout:
+    free(file_res);
+    free(grep_res);
+    free(grep_res_2nd);
+    free(grep_res_3rd);
+    free(result_buf);
+    free(pathcpy);
+    free(pathbuf);
+    free(stream_line);
+    free(stream_line_raw);
+
+    return ret_code;
+  
+}
+
 static struct fuse_operations csvfs_oper = {
     .getattr = csvfs_getattr,
     .readdir = csvfs_readdir,
     .open = csvfs_open,
     .read = csvfs_read,
     .unlink = csvfs_unlink,
+    .rename = csvfs_rename,
 };
 
 int main(int argc, char *argv[]) {
