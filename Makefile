@@ -1,4 +1,4 @@
-TARGET_EXEC ?= csfvs
+TARGET_EXEC ?= csvfs
 
 BUILD_DIR ?= ./build
 SRC_DIRS ?= ./src
@@ -10,7 +10,9 @@ DEPS := $(OBJS:.o=.d)
 INC_DIRS := ./include
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 
-CFLAGS ?= $(INC_FLAGS) --std=c99
+LDFLAGS := $(shell pkg-config fuse --cflags --libs)
+
+CFLAGS ?= $(INC_FLAGS) --std=c99 -g $(LDFLAGS)
 CPPFLAGS ?= $(INC_FLAGS) -MMD -MP
 
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
@@ -34,3 +36,4 @@ clean:
 -include $(DEPS)
 
 MKDIR_P ?= mkdir -p
+
