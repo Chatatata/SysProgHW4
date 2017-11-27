@@ -14,6 +14,7 @@ enum entity_name_t {
 };
 
 CSVFS_EXPORT int32_t read_file(const char * restrict file_name, char ** restrict out_buf);
+CSVFS_EXPORT int32_t write_file(const char * restrict file_name, char ** restrict buf, uint32_t len);
 
 CSVFS_EXPORT int32_t fgrep_city_by_name(const char * restrict file_name, const char * restrict c_name, char ** restrict out_buf);
 CSVFS_EXPORT int32_t fgrep_city_by_code(const char * file_name, const uint8_t code, char ** restrict out_buf);

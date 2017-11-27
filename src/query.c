@@ -40,6 +40,29 @@ int32_t read_file(const char * restrict file_name, char ** restrict out_buf) {
     return ret_code;
 }
 
+int32_t write_file(const char * restrict file_name, char ** restrict buf, uint32_t len) {
+    int32_t i;
+    int32_t ret_code = 0L;
+    FILE *filep;
+
+    if ((filep = fopen(file_name, "w")) == NULL) {
+        return -ENOENT;
+    }
+
+    for (i = 0; i < len; ++i) {
+        if (buf[i][0] == 'x') {
+            continue;
+        }
+
+        fprintf(filep, "%s", buf[i]);
+        ret_code += 1;
+    }
+
+    fclose(filep);
+
+    return ret_code;
+}
+
 int32_t grep_city_by_name(const char ** restrict buf, uint32_t len, const char * restrict cand_name, char ** restrict out_buf) {
     size_t i;
     size_t str_len;

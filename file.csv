@@ -1988,10 +1988,6 @@
 07880	Turuncova	Antalya	Finike	36.9806	30.8063
 07930	Hasyurt	Antalya	Finike	36.3242	30.2228
 07940	Sahilkent	Antalya	Finike	36.3433	30.2093
-07980	Ulupinar	Antalya	Kemer	36.4768	30.4265
-07980	Ovacik	Antalya	Kemer	36.6486	30.4311
-07980	Kemer	Antalya	Kemer	36.5978	30.5606
-07980	Beycik	Antalya	Kemer	36.5204	30.4313
 07990	Camyuva	Antalya	Kemer	36.5536	30.5596
 07994	Goynuk	Antalya	Kemer	36.66	30.55
 07995	Tekirova	Antalya	Kemer	36.5017	30.5272
@@ -8314,7 +8310,6 @@
 20800	Pinarbasi	Denizli	Acipayam	37.3776	29.3387
 20810	Akalan	Denizli	Acipayam	37.3722	29.3539
 20820	Alaattin	Denizli	Acipayam	37.4747	29.318
-20830	Dariveren	Denizli	Acipayam	37.2751	29.4622
 20840	Dedebagi	Denizli	Acipayam	37.2951	29.4452
 20870	Kelekci	Denizli	Acipayam	37.2407	29.3042
 20880	Yazir	Denizli	Acipayam	37.3646	29.5596
@@ -9237,9 +9232,7 @@
 22750	Isikli	Edirne	Enez	40.7167	26.3099
 22750	Sehitler	Edirne	Enez	40.6911	26.2926
 22020	Londraasfalti	Edirne	Edirne	41.2486	26.6085
-22030	Universite	Edirne	Edirne	41.2486	26.6085
 22100	Balikpazari	Edirne	Edirne	41.6725	26.5902
-22130	Hidiraga	Edirne	Edirne	41.7333	26.6833
 22130	Karabulut	Edirne	Edirne	41.7685	26.435
 22130	Hasanaga	Edirne	Edirne	41.7253	26.6248
 22130	Kosenciftligi	Edirne	Edirne	41.6725	26.5902
@@ -32363,8 +32356,6 @@
 01940	Emek	Adana	Ceyhan	36.9737	35.7019
 01950	Namikkemal	Adana	Ceyhan	36.9737	35.7019
 01960	Turlubas	Adana	Ceyhan	36.9737	35.7019
-01010	Yagcami	Adana	Seyhan	37.3397	35.632
-01020	Hukumet	Adana	Seyhan	37.3397	35.632
 01030	Saydam	Adana	Seyhan	37.3397	35.632
 01040	Akkapi	Adana	Seyhan	37.3397	35.632
 01050	Gulbahcesi	Adana	Seyhan	37.3397	35.632
@@ -33130,7 +33121,6 @@
 18000	Agzibuyuk	Cankiri	Cankiri	40.5437	34.0193
 18000	Ovacik	Cankiri	Cankiri	41.0766	32.9199
 18000	Icyenice	Cankiri	Cankiri	40.6501	33.5665
-18000	Germece	Cankiri	Cankiri	40.4081	33.679
 18000	Inandik	Cankiri	Cankiri	40.4087	33.563
 18000	Danabasi	Cankiri	Cankiri	40.5223	34.0449
 18000	Bayindir	Cankiri	Cankiri	40.8753	32.6047
@@ -33185,7 +33175,6 @@
 18280	Halacli	Cankiri	Kizilirmak	40.2888	33.9492
 18280	Asagiovacik	Cankiri	Kizilirmak	40.808	35.1033
 18280	Kahyali	Cankiri	Kizilirmak	40.2996	33.8382
-18900	Tatlipinar	Cankiri	Yaprakli	40.7226	33.8767
 18900	Musellim	Cankiri	Yaprakli	40.7537	34.0168
 18900	Sarikaya	Cankiri	Yaprakli	40.8092	33.9525
 18900	Buluca	Cankiri	Yaprakli	40.73	33.808
@@ -33207,7 +33196,6 @@
 18900	Davutlar	Cankiri	Yaprakli	40.787	33.9761
 18900	Kirliakca	Cankiri	Yaprakli	40.6193	33.9078
 18900	Bugay	Cankiri	Yaprakli	40.7167	33.7667
-18900	Belibedir	Cankiri	Yaprakli	40.7211	34.0381
 18900	Balibidik	Cankiri	Yaprakli	40.6933	33.7313
 18900	Doganbey	Cankiri	Yaprakli	40.7118	33.85
 18900	Cevrecik	Cankiri	Yaprakli	40.6567	33.8547

@@ -622,11 +622,227 @@ bailout:
     return ret_code;
 }
 
+static int32_t csvfs_unlink(const char *path) {
+    int32_t ret_code = 0L;
+    size_t buf_len = 0L;
+    int32_t grep_code = 0L;
+    int32_t total_count = 0L;
+    int32_t zip_code = 0L;
+    int32_t i = 0L, b = 0L;
+    char **file_res = malloc(sizeof(char *) * 40000);
+    char **grep_res = malloc(sizeof(char *) * BUFSIZ);
+    char **grep_res_2nd = malloc(sizeof(char *) * BUFSIZ);
+    char **grep_res_3rd = malloc(sizeof(char *) * BUFSIZ);
+    char *result_buf = malloc(sizeof(char) * BUFSIZ);
+    char *pathcpy = malloc(sizeof(char) * BUFSIZ);
+    char **pathbuf = malloc(sizeof(char *) * BUFSIZ);
+    char *stream_line = malloc(sizeof(char *) * BUFSIZ);
+    char *stream_line_raw = malloc(sizeof(char *) * BUFSIZ);
+
+    debug_print("read requested for path: %s\n", path);
+
+    strcpy(pathcpy, path);
+
+    debug_print("path copied as %s\n", pathcpy);
+    
+    ret_code = parse_path_str(pathcpy, pathbuf);
+
+    debug_print("path parse completed: %d params\n", ret_code);
+
+    if (ret_code == 3 && strcmp(pathbuf[0], "CODES") == 0) {
+        if (sscanf(pathbuf[1], "%d", &zip_code) != 1 && zip_code <= 0 && zip_code > 81) {
+            ret_code = -ENOENT;
+
+            goto bailout;
+        }
+
+        grep_code = fgrep_city_by_code("file.csv", zip_code, grep_res);
+
+        if (grep_code < 0) {
+            ret_code = grep_code;
+
+            goto bailout;
+        } else if (grep_code == 0) {
+            goto err_noent;
+        }
+
+        if (strlen(pathbuf[2]) > 5) {
+            pathbuf[2][strlen(pathbuf[2]) - 4] = '\0';
+        } else {
+            goto err_noent;
+        }
+
+        if (sscanf(pathbuf[2], "%d", &zip_code) != 1) {
+            goto err_noent;
+        }
+
+        grep_code = grep_district_by_code((const char **)grep_res, grep_code, zip_code, grep_res_2nd);
+
+        if (grep_code < 0) {
+            ret_code = grep_code;
+
+            goto bailout;
+        } else if (grep_code == 0) {
+            goto err_noent;
+        }
+
+        goto persist_for_all;
+    } else if (ret_code == 4 && strcmp(pathbuf[0], "NAMES") == 0) {
+        grep_code = fgrep_city_by_name("file.csv", pathbuf[1], grep_res);
+
+        debug_print("fgrep with city: %s:%d\n", pathbuf[1], grep_code);
+
+        if (grep_code < 0) {
+            ret_code = grep_code;
+
+            goto bailout;
+        } else if (grep_code == 0) {
+            goto err_noent;
+        }
+
+        grep_code = grep_district_by_name((const char **)grep_res, grep_code, pathbuf[2], grep_res_2nd);
+
+        debug_print("grep with dist: %s:%d\n", pathbuf[2], grep_code);
+
+        if (grep_code < 0) {
+            ret_code = grep_code;
+
+            goto bailout;
+        } else if (grep_code == 0) {
+            goto err_noent;
+        }
+
+        pathbuf[3][strlen(pathbuf[3]) - 4] = '\0';
+
+        grep_code = grep_neighbor_by_name((const char **)grep_res_2nd, grep_code, pathbuf[3], grep_res_3rd);
+
+        debug_print("grep with neigh: %s:%d\n", pathbuf[3], grep_code);
+
+        if (grep_code < 0) {
+            ret_code = grep_code;
+
+            goto bailout;
+        } else if (grep_code == 0) {
+            goto err_noent;
+        }
+
+        strcpy(stream_line_raw, grep_res_3rd[0]);
+    } else {
+err_noent:
+        ret_code = -ENOENT;
+        
+        goto bailout;
+    }
+
+persist_for_one:
+    total_count = read_file("file.csv", file_res);
+
+    if (total_count < 0) {
+        debug_print("file could not be read, EIO\n", NULL);
+
+        ret_code = -EIO;
+
+        goto bailout;
+    } else if (total_count == 0) {
+        debug_print("file read but nothing found, EIO\n", NULL);
+
+        ret_code = -EIO;
+
+        goto bailout;
+    }
+
+    for (i = 0; i < total_count; ++i) {
+        if (strcmp(file_res[i], stream_line_raw) == 0) {
+            debug_print("found on delete, inserting x\n", NULL);
+
+            file_res[i][0] = 'x';
+            break;
+        }
+    }
+
+    ret_code = write_file("file.csv", file_res, total_count);
+
+    if (ret_code != total_count - 1) {
+        debug_print("unexpected write count on write, expected %d found %d\n", total_count - 1, ret_code);
+
+        ret_code = -EIO;
+
+        goto bailout;
+    }
+
+    debug_print("written %d lines to file successfully\n", ret_code);
+
+    ret_code = 0;
+
+    goto bailout;
+
+persist_for_all:
+    total_count = read_file("file.csv", file_res);
+
+    if (total_count < 0) {
+        debug_print("file could not be read, EIO\n", NULL);
+
+        ret_code = -EIO;
+
+        goto bailout;
+    } else if (total_count == 0) {
+        debug_print("file read but nothing found, EIO\n", NULL);
+
+        ret_code = -EIO;
+
+        goto bailout;
+    }
+
+    for (i = 0; i < total_count; ++i) {
+        for (b = 0; b < grep_code; ++b) {
+            if (strcmp(file_res[i], grep_res_2nd[b]) == 0) {
+                debug_print("found on delete, inserting x\n", NULL);
+
+                file_res[i][0] = 'x';
+                goto bump;
+            }
+        }
+bump:
+        /* null */;
+    }
+
+    ret_code = write_file("file.csv", file_res, total_count);
+
+    if (ret_code >= total_count) {
+        debug_print("unexpected write count on write, expected %d found %d\n", total_count - 1, ret_code);
+
+        ret_code = -EIO;
+
+        goto bailout;
+    }
+
+    debug_print("written %d lines to file successfully\n", ret_code);
+
+    ret_code = 0;
+
+    goto bailout;
+
+
+bailout:
+    free(file_res);
+    free(grep_res);
+    free(grep_res_2nd);
+    free(grep_res_3rd);
+    free(result_buf);
+    free(pathcpy);
+    free(pathbuf);
+    free(stream_line);
+    free(stream_line_raw);
+
+    return ret_code;
+}
+
 static struct fuse_operations csvfs_oper = {
     .getattr = csvfs_getattr,
     .readdir = csvfs_readdir,
     .open = csvfs_open,
     .read = csvfs_read,
+    .unlink = csvfs_unlink,
 };
 
 int main(int argc, char *argv[]) {
