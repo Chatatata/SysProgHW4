@@ -62,7 +62,7 @@ int32_t grep_city_by_name(const char ** restrict buf, uint32_t len, const char *
 
         if (strcmp(cand_name, c_name) == 0) {
             //  FIXME: string length should not be constant
-            str_len = 70;
+            str_len = 100;
 
             out_buf[ret_code] = malloc(sizeof(char) * str_len);
             strcpy(out_buf[ret_code], buf[i]);
@@ -131,7 +131,7 @@ int32_t grep_city_by_code(const char ** restrict buf, uint32_t len, const uint8_
 
         if (code == zip / 1000) {
             //  FIXME: string length should not be constant
-            str_len = 70;
+            str_len = 100;
 
             out_buf[ret_code] = malloc(sizeof(char) * str_len);
             strcpy(out_buf[ret_code], buf[i]);
@@ -200,7 +200,7 @@ int32_t grep_district_by_name(const char ** restrict buf, uint32_t len, const ch
 
         if (strcmp(cand_name, d_name) == 0) {
             //  FIXME: string length should not be constant
-            str_len = 70;
+            str_len = 100;
 
             out_buf[ret_code] = malloc(sizeof(char) * str_len);
             strcpy(out_buf[ret_code], buf[i]);
@@ -243,6 +243,89 @@ int32_t fgrep_district_by_name(const char * restrict file_name, const char * res
     ret_code = grep_city_by_name((const char ** restrict)entries, (uint32_t)ret_code, d_name, out_buf); 
 bailout:
     free(entries);
+
+    return ret_code;
+}
+
+int32_t grep_district_by_code(const char ** restrict buf, uint32_t len, const uint32_t code, char ** restrict out_buf) {
+    size_t i;
+    size_t str_len;
+    char *c_name = malloc(sizeof(char) * BUFSIZ);
+    char *d_name = malloc(sizeof(char) * BUFSIZ);
+    char *n_name = malloc(sizeof(char) * BUFSIZ);
+    char *lat = malloc(sizeof(char) * BUFSIZ);
+    char *lon = malloc(sizeof(char) * BUFSIZ);
+    uint32_t zip = 0UL;
+    int32_t ret_code = 0UL;
+    
+    for (i = 0; i < len; i++) {
+        if (sscanf(buf[i], "%u\t%s\t%s\t%s\t%s\t%s", &zip, n_name, c_name, d_name, lat, lon) != 6) {
+            ret_code = -EINVAL;
+
+            debug_print("line reader cannot resolve line %d, read %d fields instead\n", i, ret_code);
+
+            goto bailout;
+        }
+
+        if (code == zip) {
+            //  FIXME: string length should not be constant
+            str_len = 100;
+
+            out_buf[ret_code] = malloc(sizeof(char) * str_len);
+            strcpy(out_buf[ret_code], buf[i]);
+
+            ret_code += 1;
+        }
+    }
+
+bailout:
+    free(c_name);
+    free(d_name);
+    free(n_name);
+    free(lat);
+    free(lon);
+
+    return ret_code;
+
+}
+
+int32_t grep_neighbor_by_name(const char ** restrict buf, uint32_t len, const char * restrict cand_name, char ** restrict out_buf) {
+    size_t i;
+    size_t str_len;
+    char *c_name = malloc(sizeof(char) * BUFSIZ);
+    char *d_name = malloc(sizeof(char) * BUFSIZ);
+    char *n_name = malloc(sizeof(char) * BUFSIZ);
+    char *lat = malloc(sizeof(char) * BUFSIZ);
+    char *lon = malloc(sizeof(char) * BUFSIZ);
+    uint32_t zip = 0UL;
+    int32_t ret_code = 0UL;
+    
+    for (i = 0; i < len; i++) {
+        if (sscanf(buf[i], "%u\t%s\t%s\t%s\t%s\t%s", &zip, n_name, c_name, d_name, lat, lon) != 6) {
+            ret_code = -EINVAL;
+
+            debug_print("line reader cannot resolve line %d, read %d fields instead\n", i, ret_code);
+
+            goto bailout;
+        }
+
+        if (strcmp(cand_name, n_name) == 0) {
+            //  FIXME: string length should not be constant
+            str_len = 100;
+
+            out_buf[ret_code] = malloc(sizeof(char) * str_len);
+            strcpy(out_buf[ret_code], buf[i]);
+
+            ret_code += 1;
+        }
+    }
+
+bailout:
+    free(c_name);
+    free(d_name);
+    free(n_name);
+    free(lat);
+    free(lon);
 
     return ret_code;
 }
@@ -339,7 +422,7 @@ int32_t normalize_entries_for_city(const char ** restrict entries, uint32_t len,
 
     for (i = 0; i < len; ++i) {
         grep_code = get_entity_for_entry(entries[i], etty_c_name, extracted_name);
-
+        
         if (grep_code < 0) {
             debug_print("entity could not be fetched from entry %s, reason: %d\n", entries[i], grep_code);
 
@@ -369,6 +452,8 @@ int32_t normalize_entries_for_district(const char ** restrict entries, uint32_t 
     char *extracted_name = malloc(sizeof(char) * BUFSIZ);
     int32_t ret_code = 0UL, grep_code = 0UL;
 
+    debug_print("normalization started for len: %d\n", len);
+
     for (i = 0; i < len; ++i) {
         grep_code = get_entity_for_entry(entries[i], etty_d_name, extracted_name);
 
@@ -377,6 +462,7 @@ int32_t normalize_entries_for_district(const char ** restrict entries, uint32_t 
 
             return grep_code;
         }
+
 
         for (b = 0; b < ret_code; ++b) {
             if (strcmp(out_buf[b], extracted_name) == 0) {
@@ -429,3 +515,29 @@ pass:
     return ret_code;
 }
 
+int32_t dump_entry(const char * restrict entry, char * restrict out_buf) {
+    int32_t ret_code = 0UL;
+    uint32_t zip = 0UL;
+    char *c_name = malloc(sizeof(char) * BUFSIZ);
+    char *d_name = malloc(sizeof(char) * BUFSIZ);
+    char *n_name = malloc(sizeof(char) * BUFSIZ);
+    char *lat = malloc(sizeof(char) * BUFSIZ);
+    char *lon = malloc(sizeof(char) * BUFSIZ);
+
+    if (entry == NULL || out_buf == NULL) {
+        ret_code = -EINVAL;
+
+        goto bailout;
+    }
+
+    if (sscanf(entry, "%u\t%s\t%s\t%s\t%s\t%s", &zip, n_name, c_name, d_name, lat, lon) != 6) {
+        ret_code = -EINVAL;
+
+        goto bailout;
+    }
+
+    sprintf(out_buf, "code: %u\nneighborhood: %s\ncity: %s\ndistrict: %s\nlatitude: %s\nlongitude: %s\n", zip, n_name, c_name, d_name, lat, lon);
+
+bailout:
+    return ret_code;
+}

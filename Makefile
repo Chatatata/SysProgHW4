@@ -12,7 +12,7 @@ INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 
 LDFLAGS := $(shell pkg-config fuse --cflags --libs)
 
-CFLAGS ?= $(INC_FLAGS) --std=c99 -g $(LDFLAGS)
+CFLAGS ?= $(INC_FLAGS) --std=c99 -g $(LDFLAGS) 
 CPPFLAGS ?= $(INC_FLAGS) -MMD -MP
 
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
