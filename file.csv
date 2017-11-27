@@ -1988,6 +1988,10 @@
 07880	Turuncova	Antalya	Finike	36.9806	30.8063
 07930	Hasyurt	Antalya	Finike	36.3242	30.2228
 07940	Sahilkent	Antalya	Finike	36.3433	30.2093
+07980	Ulupinar	Antalya	Kemer	36.4768	30.4265
+07980	Ovacik	Antalya	Kemer	36.6486	30.4311
+07980	Kemer	Antalya	Kemer	36.5978	30.5606
+07980	Beycik	Antalya	Kemer	36.5204	30.4313
 07990	Camyuva	Antalya	Kemer	36.5536	30.5596
 07994	Goynuk	Antalya	Kemer	36.66	30.55
 07995	Tekirova	Antalya	Kemer	36.5017	30.5272
@@ -8310,6 +8314,7 @@
 20800	Pinarbasi	Denizli	Acipayam	37.3776	29.3387
 20810	Akalan	Denizli	Acipayam	37.3722	29.3539
 20820	Alaattin	Denizli	Acipayam	37.4747	29.318
+20830	Dariveren	Denizli	Acipayam	37.2751	29.4622
 20840	Dedebagi	Denizli	Acipayam	37.2951	29.4452
 20870	Kelekci	Denizli	Acipayam	37.2407	29.3042
 20880	Yazir	Denizli	Acipayam	37.3646	29.5596
@@ -31783,7 +31788,7 @@
 70000	Beydili	Karaman	Karaman	37.1474	33.1652
 70000	Kilbasan	Karaman	Karaman	37.3249	33.1863
 70000	Karacaoren	Karaman	Karaman	37.4734	33.2311
-70000	Guldere	Karaman	Karaman	37.0054	33.4708
+70000	Anan	Karaman	Karaman	37.0054	33.4708	
 70000	Ucbas	Karaman	Karaman	37.1474	33.1652
 70000	Kizillaragini	Karaman	Karaman	37.1425	33.6334
 70000	Cerit	Karaman	Karaman	36.9595	33.1859
