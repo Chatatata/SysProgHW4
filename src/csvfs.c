@@ -506,7 +506,7 @@ static int csvfs_read(const char *path, char *buf, size_t size, off_t offset, st
         }
 
         if (strlen(pathbuf[2]) > 5) {
-            pathbuf[2][strlen(pathbuf[2] - 4)] = '\0';
+            pathbuf[2][strlen(pathbuf[2]) - 4] = '\0';
         } else {
             goto err_noent;
         }
